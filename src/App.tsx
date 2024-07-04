@@ -41,7 +41,7 @@ const DELAY = 1500;
 
 const circleOptions = {
   friction: 0.2,
-  mass: 2,
+  mass: 10,
 };
 
 let circles: Matter.Body[] = [];
@@ -85,45 +85,6 @@ function App() {
         Math.max(e.clientX - (window.innerWidth - WIDTH) / 2 - SIZE[next], 0),
         WIDTH - SIZE[next] * 2
       ) + "px";
-  };
-
-  const addNewCircle = async (l: BodyType) => {
-    Composite.remove(
-      engine.world,
-      circles.filter((c) => c.id === l.bodyA.id || c.id === l.bodyB.id)
-    );
-
-    const newCircle = Bodies.circle(
-      Math.max(
-        Math.min(
-          (l.bodyA.bounds.min.x + l.bodyB.bounds.min.x) / 2,
-          WIDTH - SIZE[l.bodyA.collisionFilter.group + 1]
-        ),
-        SIZE[l.bodyA.collisionFilter.group + 1]
-      ),
-      Math.min(
-        (l.bodyA.bounds.min.y + l.bodyB.bounds.min.y) / 2,
-        window.innerHeight - SIZE[l.bodyA.collisionFilter.group + 1]
-      ),
-      SIZE[l.bodyA.collisionFilter.group + 1],
-      {
-        collisionFilter: {
-          group: l.bodyA.collisionFilter.group + 1,
-        },
-        render: {
-          sprite: {
-            texture: `/assets/${l.bodyA.collisionFilter.group + 1 + 1}.png`,
-            xScale: 1,
-            yScale: 1,
-          },
-        },
-        ...circleOptions,
-      }
-    );
-
-    Composite.add(engine.world, [newCircle]);
-    circles = circles.filter((c) => c.id !== l.bodyA.id && c.id !== l.bodyB.id);
-    circles.push(newCircle);
   };
 
   const init = useCallback(() => {
@@ -177,11 +138,12 @@ function App() {
     Runner.run(runner, engine);
 
     Events.on(engine, "collisionStart", (e) => {
-      for (const l of e.source.pairs.list.filter(
-        (l: BodyType) =>
-          !(l.bodyA.label === "static" || l.bodyB.label === "static")
-      )) {
-        {
+      e.source.pairs.list
+        .filter(
+          (l: BodyType) =>
+            !(l.bodyA.label === "static" || l.bodyB.label === "static")
+        )
+        .forEach((l: BodyType) => {
           if (l.bodyA.collisionFilter.group !== l.bodyB.collisionFilter.group) {
             return;
           }
@@ -192,9 +154,47 @@ function App() {
             return;
           }
 
-          addNewCircle(l);
-        }
-      }
+          Composite.remove(
+            engine.world,
+            circles.filter((c) => c.id === l.bodyA.id || c.id === l.bodyB.id)
+          );
+
+          const newCircle = Bodies.circle(
+            Math.max(
+              Math.min(
+                (l.bodyA.bounds.min.x + l.bodyB.bounds.min.x) / 2,
+                WIDTH - SIZE[l.bodyA.collisionFilter.group + 1]
+              ),
+              SIZE[l.bodyA.collisionFilter.group + 1]
+            ),
+            Math.min(
+              (l.bodyA.bounds.min.y + l.bodyB.bounds.min.y) / 2,
+              window.innerHeight - SIZE[l.bodyA.collisionFilter.group + 1]
+            ),
+            SIZE[l.bodyA.collisionFilter.group + 1],
+            {
+              collisionFilter: {
+                group: l.bodyA.collisionFilter.group + 1,
+              },
+              render: {
+                sprite: {
+                  texture: `/assets/${
+                    l.bodyA.collisionFilter.group + 1 + 1
+                  }.png`,
+                  xScale: 1,
+                  yScale: 1,
+                },
+              },
+              ...circleOptions,
+            }
+          );
+
+          Composite.add(engine.world, [newCircle]);
+          circles = circles.filter(
+            (c) => c.id !== l.bodyA.id && c.id !== l.bodyB.id
+          );
+          circles.push(newCircle);
+        });
     });
   }, [Bodies, Composite, Events, Render, Runner, engine]);
 
