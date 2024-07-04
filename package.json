@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@types/matter-js": "^0.19.6",
+    "@types/throttle-debounce": "^5.0.2",
     "matter-js": "^0.20.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "throttle-debounce": "^5.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

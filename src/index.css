@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+* {
+  font-family: "pretendard", sans-serif;
+}
+
+@layer components {
+  .btn {
+    @apply mt-4 bg-white text-black py-2 px-4 rounded-lg hover:bg-gray-100 font-semibold;
+  }
+  .emoji {
+    @apply text-4xl mb-1;
+  }
+  .heading {
+    @apply text-2xl font-bold text-center;
+  }
+}
