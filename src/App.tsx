@@ -168,6 +168,13 @@ function App() {
             circles.filter((c) => c.id === l.bodyA.id || c.id === l.bodyB.id)
           );
 
+          if (l.bodyA.collisionFilter.group === SIZE.length - 2) {
+            setTimeout(() => {
+              alert("참 잘했어요");
+              window.location.reload();
+            }, 200);
+          }
+
           const newCircle = Bodies.circle(
             Math.max(
               Math.min(
@@ -209,7 +216,6 @@ function App() {
 
   const add = (e: MouseEvent<HTMLElement> | TouchEvent<HTMLElement>) => {
     if (time < DELAY) return;
-    time = 0;
     const mouseX =
       e.type === "mouseup"
         ? (e as MouseEvent<HTMLElement>).clientX -
@@ -238,6 +244,7 @@ function App() {
     circles.push(circle);
     next = Math.floor(Math.random() * 3);
     setNextElementStyle();
+    time = 0;
   };
 
   useEffect(() => {
