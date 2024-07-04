@@ -1,6 +1,5 @@
 import Matter from "matter-js";
 import { MouseEvent, TouchEvent, useCallback, useEffect, useRef } from "react";
-import { throttle } from "throttle-debounce";
 
 interface BodyType {
   bodyA: {
