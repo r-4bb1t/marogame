@@ -42,7 +42,7 @@ interface BodyType {
   };
 }
 
-const WIDTH = 384;
+const WIDTH = Math.min(window.innerWidth, 400);
 const SIZE = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
 const DELAY = 1200;
 
@@ -381,7 +381,7 @@ function App() {
         </div>
       )}
       <main
-        className="w-96 relative"
+        className="w-full max-w-[400px] relative"
         ref={mainElement}
         onMouseUp={(e) => add(e)}
         onTouchEnd={(e) => add(e)}
