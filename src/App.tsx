@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { MouseEvent, useCallback, useEffect, useRef } from "react";
+import { MouseEvent, TouchEvent, useCallback, useEffect, useRef } from "react";
 import { throttle } from "throttle-debounce";
 
 interface BodyType {
@@ -46,6 +46,7 @@ const circleOptions = {
 
 let circles: Matter.Body[] = [];
 let next = 0;
+let time = DELAY;
 
 function App() {
   const mainElement = useRef<HTMLDivElement>(null);
@@ -78,13 +79,22 @@ function App() {
   };
 
   const nextElementMoveX = (
-    e: MouseEvent<HTMLElement, globalThis.MouseEvent>
+    e: MouseEvent<HTMLElement, globalThis.MouseEvent> | TouchEvent<HTMLElement>
   ) => {
+    let x = 0;
+    if (e.type === "mousemove") {
+      x =
+        (e as MouseEvent<HTMLElement, globalThis.MouseEvent>).clientX -
+        (window.innerWidth - WIDTH) / 2 -
+        SIZE[next];
+    } else if (e.type === "touchmove") {
+      x =
+        (e as TouchEvent<HTMLElement>).touches[0].clientX -
+        (window.innerWidth - WIDTH) / 2 -
+        SIZE[next];
+    }
     nextElement.current!.style.left =
-      Math.min(
-        Math.max(e.clientX - (window.innerWidth - WIDTH) / 2 - SIZE[next], 0),
-        WIDTH - SIZE[next] * 2
-      ) + "px";
+      Math.min(Math.max(x, 0), WIDTH - SIZE[next] * 2) + "px";
   };
 
   const init = useCallback(() => {
@@ -112,22 +122,22 @@ function App() {
 
     const ground = Bodies.rectangle(
       WIDTH / 2,
-      window.innerHeight - 5,
+      window.innerHeight + 50,
       WIDTH,
-      10,
+      100,
       wallOptions
     );
     const wallLeft = Bodies.rectangle(
-      -1,
+      -50,
       window.innerHeight / 2,
-      1,
+      100,
       window.innerHeight,
       wallOptions
     );
     const wallRight = Bodies.rectangle(
-      WIDTH + 1,
+      WIDTH + 50,
       window.innerHeight / 2,
-      1,
+      100,
       window.innerHeight,
       wallOptions
     );
@@ -198,9 +208,15 @@ function App() {
     });
   }, [Bodies, Composite, Events, Render, Runner, engine]);
 
-  const add = throttle(DELAY, (e: MouseEvent<HTMLElement>) => {
+  const add = (e: MouseEvent<HTMLElement> | TouchEvent<HTMLElement>) => {
+    if (time < DELAY) return;
+    time = 0;
     const mouseX =
-      e.clientX - mainElement.current!.getBoundingClientRect().left;
+      e.type === "mouseup"
+        ? (e as MouseEvent<HTMLElement>).clientX -
+          mainElement.current!.getBoundingClientRect().left
+        : (e as TouchEvent<HTMLElement>).changedTouches[0].clientX -
+          mainElement.current!.getBoundingClientRect().left;
     const circle = Bodies.circle(
       Math.max(Math.min(WIDTH - SIZE[next], mouseX), SIZE[next]),
       8 + SIZE[next],
@@ -223,19 +239,28 @@ function App() {
     circles.push(circle);
     next = Math.floor(Math.random() * 3);
     setNextElementStyle();
-  });
+  };
 
   useEffect(() => {
     init();
+    const interval = setInterval(() => {
+      time += 100;
+    }, 100);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (
-    <div className="w-full h-screen flex flex-col items-center overflow-hidden bg-black">
+    <div className="w-full h-[100dvh] flex flex-col items-center overflow-hidden bg-black">
       <main
         className="w-96 relative"
         ref={mainElement}
         onMouseUp={(e) => add(e)}
+        onTouchEnd={(e) => add(e)}
         onMouseMove={(e) => nextElementMoveX(e)}
+        onTouchMove={(e) => nextElementMoveX(e)}
       >
         <div ref={nextElement} className="absolute top-2" />
       </main>
